@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/header.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<!-- 头部标题栏 -->
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left" style="color: white;"></a>
+			<a class="mui-icon mui-icon-right-nav mui-pull-right title-color" style="font-size: 14px;line-height: 25px;" id="link_submit">完成</a>
+			<h1 class="mui-title title-color">设置昵称</h1>
+		</header>
+		
+		<!-- 主体部分 -->
+		<div class="mui-content">
+			<div class="mui-input-row">
+				<input id="nickname" type="text" class="mui-input-speech mui-input-clear" placeholder="修改昵称" />
+			</div>
+		</div>
+		
+		<script src="../js/mui.js"></script>
+		<script src="../js/tool.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+			    //获取登录或者注册后的全局用户对象
+				var user = tool.getUserGlobalInfo();
+				//获取昵称
+				var mynickname = user.nickname;
+				//获取修改昵称的文本框对象
+				var text_nickname = document.getElementById("nickname");
+				//动态设置昵称文本框的内容
+				text_nickname.value = mynickname;
+				
+				//修改昵称
+				var link_submit = document.getElementById("link_submit");
+				link_submit.addEventListener("tap",function(){
+					//获取修改后的昵称
+					var newNickName = text_nickname.value;
+					//判断名称是否满足条件
+					if(!tool.isNotNull(newNickName)){
+						mui.toast('请输入要修改的昵称',{ duration:'long', type:'div' });
+						return false;
+					}else if(newNickName.length<1 || newNickName.length>10){
+						mui.toast('昵称长度要小于十位',{ duration:'long', type:'div' });
+						return false;
+					}
+					plus.nativeUI.showWaiting("请稍后...");
+					//异步请求后台服务器
+					mui.ajax(tool.serverUrl + "/user/edituser",{
+						//传入参数
+						data:{
+							id:user.id,
+							nickname:newNickName
+						},
+						//请求接口的方法(GET、POST、PUT……)
+						type:'post',
+						//超时设置为10m
+						timeout:10000,
+						//当请求成功时会执行这个方法
+						success:function(data){
+							//修改后返回的数据
+							var user = data.data;
+							if(data.code==20000){
+								mui.toast(data.msg);
+								//设置到本地缓存里
+								tool.setUserGlobalInfo(data.data)
+								//将用户数据存入本地缓存
+								// window.localStorage.setItem("user",data.data)
+								
+								//触发另一个webview的自定义事件,更新最新用户信息
+								var myweb = plus.webview.getWebviewById("birdmy.html");
+								mui.fire(myweb,"refresh");
+								//页面跳转
+								mui.back();
+							}else{
+								mui.toast(data.msg);
+							}
+							plus.nativeUI.closeWaiting();
+							//对回调结果进行处理
+							
+						},
+						//当请求失败时会返回这个方法
+						error:function(XMLHttpRequest,textStatus,errorThrown){
+							// //重置登录按钮的状态
+							// mui(".mui-btn-green").button('reset');
+							//请求超时
+							if(textStatus=="timeout"){
+								mui.toast("连接超时");
+							}else if(textStatus=="error"){
+								mui.toast("连接错误")
+							}
+						},
+						contentType : 'application/json',
+					})
+				})
+			})
+		</script>
+	</body>
+
+</html>

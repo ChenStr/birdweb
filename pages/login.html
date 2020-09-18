@@ -1,0 +1,195 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link rel="stylesheet" type="text/css" href="../css/util.css">
+		<link rel="stylesheet" type="text/css" href="../css/main.css">
+		
+		<style type="text/css">
+			.p-t-85{
+				padding-top: 10px;
+			}
+			
+			.p-b-70{
+				padding-bottom: 35px;
+			}
+			
+			.m-t-85{
+				padding: 25px;
+			}
+			
+			.container-login100{
+				padding: 25px;
+			}
+			
+			/**toast信息提示*/
+			.mui-toast-container{
+				bottom: 50% !important;
+			}
+			
+			.miu-toast-message{
+				opacity: 0.6;
+				color: #fff;
+				width: 180px;
+				padding: 70px 5px 10px 5px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<div class="mui-content">
+			<div class="container-login100">
+				<div class="wrap-login100 p-t-85 p-b-20">
+					<form id="userform" action="" method="">
+						<!-- 标题 -->
+						<span class="login100-form-title p-b-70">
+							<h1>" 百 灵 鸟 " 聊天</h1>
+						</span>
+						<!-- 头像 -->
+						<span class="login100-form-avatar">
+							<img id="img_login_face" src="../images/angelina.jpg" alt="gary">
+						</span>
+						
+						<div class="wrap-input100 validate-input m-t-85 m-b-35">
+							<input type="text" class="input100" id="username" name="password" placeholder="用户名" />
+							<span class="focus-input100"></span>
+						</div>
+						<div class="wrap-input100 validate-input m-t-85 m-b-35">
+							<input class="input100" id="password" name="password" placeholder="密码" type="password">
+							<span class="focus-input100"></span>
+						</div>
+						<div class="container-login100-form-btn">
+							<button type="submit" class="login100-form-btn" style="background-color: #FF4136;">
+								登录/注册
+							</button>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+		<script src="../js/mui.js"></script>
+		<script src="../js/tool.js"></script>
+		<script type="text/javascript" charset="UTF-8">
+			mui.init();
+			
+			//获取用户输入的用户名与密码
+			var userform = document.getElementById("userform");
+			var username = document.getElementById("username");
+			var password = document.getElementById("password");
+			
+			mui.plusReady(function(){
+				<!-- 设置状态栏颜色 -->
+				if(window.plus){
+					plus.navigator.setStatusBarBackground("#2c2c2c");
+					//判断用户是否登录注册过，如果本地缓存里有全局用户对象，直接进入index页面
+					var userInfo = tool.getUserGlobalInfo();
+					if(userInfo!=null){
+						mui.openWindow("index.html","index.html");
+					}
+				}
+			})
+			<!-- 给登录注册添加点击事件 -->
+			// document.getElementsByClassName("mui-btn")[0].addEventListener("tap",function(){
+			// 	<!-- 判断用户名是否为空 -->
+			// 	ajaxregOrlogin();
+			// })
+			mui(document.body).on("tap",".login100-form-btn",function(){
+				<!-- 判断用户名是否为空 -->
+				ajaxregOrlogin();
+			})
+			function ajaxregOrlogin(e){
+				//判断用户名是否为空，如果为空让光标指向用户名
+				if(!tool.isNotNull(username.value)){
+					//获得焦点
+					username.focus();
+					mui.toast('请输入用户名',{ duration:'long', type:'div' })
+				}else if(!tool.isNotNull(username.value)){
+					//获得焦点
+					password.focus();
+					mui.toast('请输入密码',{ duration:'long', type:'div' })
+				}
+				//判断用户名和密码的合法性
+				else{
+					//用户名的长度不能大于12位
+					if(username.value.length>12){
+						// tool.showToast("用户名不能超过12位","error")
+						mui.toast('用户名不能超过12位',{ duration:'long', type:'div' })
+						return false;
+					}
+					//判断密码是否超过6位
+					else if(password.value.length>6){
+						// tool.showToast("密码不能超过6位","error")
+						mui.toast('密码不能超过6位',{ duration:'long', type:'div' }) 
+						return false;
+					}else{
+						// //用户名与密码判断通过切换登录的样式将其变为加载中的样子
+						// mui(".miu-btn").button("loading");
+						//获取每台设备上的cid
+						var cid;
+						if(window.plus){
+							cid = plus.push.getClientInfo().clientid;
+						}
+						//异步请求后端的接口
+						mui.ajax(tool.serverUrl+"user/login",{
+							//将用户名与密码传输到后端进行登录
+							data:{
+								username:username.value,
+								password:password.value,
+								cid:cid
+							},
+							//请求接口的方法(GET、POST、PUT……)
+							type:'post',
+							//超时设置为10m
+							timeout:10000,
+							//当请求成功时会执行这个方法
+							success:function(data){
+								var state = data;
+								//设置到本地缓存里
+								tool.setUserGlobalInfo(data.data)
+								if(data.code==20000){
+									mui.toast(data.msg);
+									//将用户数据存入本地缓存  并打开下一个页面
+									window.localStorage.setItem("userInfo",data.data)
+									//预加载页面
+									mui.preload({
+										url:'index.html',
+										id:'index',
+										// styles:{},//窗口参数
+										// extras:{}//自定义扩展参数
+									});
+									//计时器 2s 之后打开index页面
+									setTimeout(function(){
+										mui.openWindow({url:'index.html',id:'index'});
+									},2000);
+								}else{
+									mui.toast(data.msg);
+								}
+								//对回调结果进行处理
+								
+							},
+							//当请求失败时会返回这个方法
+							error:function(XMLHttpRequest,textStatus,errorThrown){
+								// //重置登录按钮的状态
+								// mui(".mui-btn-green").button('reset');
+								//请求超时
+								if(textStatus=="timeout"){
+									mui.toast("连接超时");
+								}else if(textStatus=="error"){
+									mui.toast("连接错误")
+								}
+							},
+							contentType : 'application/json',
+						});
+					}
+					//防止默认时间,防止默认表单提交
+					// e.preventDefault();
+				}
+			}
+		</script>
+	</body>
+
+</html>

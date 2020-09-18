@@ -1,0 +1,91 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/header.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<!-- 头部 -->
+		<header class="mui-bar mui-bar-nav title" >
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left" style="color: white;"></a>
+			<a id="link_submit_search" class="mui-icon mui-icon-right-nav mui-pull-right" style="color: white;font-size: 14px;line-height: 25px;" href="javascript:;">搜索</a>
+			<h1 class="mui-title title-color">添加好友</h1>
+		</header>
+		<!-- 主体部分 -->
+		<div class="mui-content">
+			<div class="mui-input-row">
+				<input id="text_find_friend" type="text" class="mui-input-speech mui-input-clear" placeholder="搜索好友" />
+			</div>
+		</div>
+		<script src="../js/mui.js"></script>
+		<script src="../js/tool.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+			    //获取用户的全局信息
+				var user = tool.getUserGlobalInfo();
+				//获取搜索框对象
+				var text_find_friend = document.getElementById("text_find_friend");
+				//为搜索按钮添加触摸(点击)事件
+				document.getElementById("link_submit_search").addEventListener("tap",function(){
+					// 获取用户在搜索框里输入的文字
+					var friendusername = text_find_friend.value;
+					if(!tool.isNotNull(friendusername)){
+						mui.toast("请输入要搜索的好友名");
+						//获取焦点
+						text_find_friend.focus();
+					}else{
+						//请求后端的接口
+						mui.ajax(tool.serverUrl+"user/bynamefirend/" + "?userId="+user.id+"&username="+friendusername,{
+							//请求接口的方法(GET、POST、PUT……)
+							type:'get',
+							//设置参数的传入形式为json形式
+							contentType : 'application/json',
+							//超时设置为10m
+							timeout:10000,
+							//当请求成功时会执行这个方法
+							success:function(data){
+								//关闭等待中的动画
+								plus.nativeUI.closeWaiting();
+								if(data.code==20000){
+									mui.openWindow({
+										url:"searFirendResult.html",
+										id:"searFirendResult",
+										//往搜索好友结果页面传入参数
+										extras:{
+											//将查找到的好友信息传入
+											friend:data.data
+										}
+									})
+									
+								}else{
+									mui.toast(data.msg);
+								}
+								//对回调结果进行处理
+								
+							},
+							//当请求失败时会返回这个方法
+							error:function(XMLHttpRequest,textStatus,errorThrown){
+								//关闭等待中的动画
+								plus.nativeUI.closeWaiting();
+								//请求超时
+								if(textStatus=="timeout"){
+									mui.toast("连接超时");
+								}else if(textStatus=="error"){
+									mui.toast("连接错误")
+								}
+							},
+						});
+					}
+					
+				});
+			});
+		</script>
+	</body>
+
+</html>

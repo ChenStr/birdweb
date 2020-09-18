@@ -1,0 +1,61 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/header.css" rel="stylesheet" />
+		<style type="text/css">
+			#scan{
+				width: 100%;
+				top: 44px;
+				position: absolute;
+				text-align: center;
+				background: #000000;
+			}
+		</style>
+	</head>
+
+	<body>
+		<!-- 头部带有返回箭头的标题栏 -->
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left title-color"></a>
+			<h1 class="mui-title title-color">扫一扫</h1>
+		</header>
+		<div id="scan"></div>
+		
+		<script src="../js/mui.js"></script>
+		<script src="../js/tool.js"></script>
+		<script type="text/javascript">
+			mui.init()
+			mui.plusReady(function () {
+				var scan;
+				//将二维码的扫描区域定义为#scan 的div元素
+			    function startScan(){
+					scan = new plus.barcode.Barcode('scan');
+					scan.onmarked = onmarked;
+				}
+				//二维码进行扫描后会执行的方法
+				//type 表示你扫描的类型 二维码为 0 result为扫描后得到的信息
+				function onmarked( type , result ){
+					var text = '未知:';
+					switch(type){
+						case plus.barcode.QR;
+						text = 'QR:';
+						break;
+						case plus.barcode.EAN13;
+						break;
+						case plus.barcode.EAN8;
+						break;
+					}
+					alert(text+result);
+				}
+				//开启二维码扫描
+				setTimeout(startScan(),500)
+			})
+		</script>
+	</body>
+
+</html>

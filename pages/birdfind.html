@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/header.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<!-- 头部标题栏 -->
+		<header class="mui-bar mui-bar-nav title">
+			<h1 class="mui-title title-color">" 白 灵 鸟 " 发现</h1>
+		</header>
+		<!-- 主体部分 -->
+		<div class="mui-content">
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell mui-media">
+					<a href="javascript:;">
+						<img class="mui-media-object mui-pull-left" src="../images/truth.jpg" style="max-width: 25px;height: 25px;">
+						<div class="mui-media-body">
+							<p class="mui-ellipsis" style="margin: 0 0 0 10px;line-height: 24px; font-size: 14px;color: #000000;">朋友圈</p>
+						</div>
+					</a>
+				</li>
+			</ul>
+			<br />
+			<ul class="mui-table-view">
+				<li class="mui-table-view-cell mui-media">
+					<a href="javascript:;" id="link_add_friend">
+						<img class="mui-media-object mui-pull-left" src="../images/ShiHuaiya.jpg" style="max-width: 25px;height: 25px;">
+						<div class="mui-media-body">
+							<p class="mui-ellipsis" style="margin: 0 0 0 10px;line-height: 24px; font-size: 14px;color: #000000;">添加好友</p>
+						</div>
+					</a>
+				</li>
+				<li class="mui-table-view-cell mui-media">
+					<a href="javascript:;" id="link_scan" >
+						<img class="mui-media-object mui-pull-left" src="../images/angelina.jpg" style="max-width: 25px;height: 25px;">
+						<div class="mui-media-body">
+							<p class="mui-ellipsis" style="margin: 0 0 0 10px;line-height: 24px; font-size: 14px;color: #000000;">扫一扫</p>
+						</div>
+					</a>
+				</li>
+			</ul>
+		</div>
+		<script src="../js/mui.js"></script>
+		<script src="../js/tool.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+			    //添加好友监听事件   tap触摸(点击)事件
+				document.getElementById("link_add_friend").addEventListener("tap",function(){
+					//打开一个新的页面    页面名字  id名字
+					mui.openWindow("findFriend.html","findFriend");
+				});
+				
+				//扫一扫添加好友
+				document.getElementById("link_scan").addEventListener("tap",function(){
+					//打开一个新的页面    页面名字  id名字
+					mui.openWindow("scanFriend.html","scanFriend");
+				});
+			});
+		</script>
+	</body>
+
+</html>

@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/header.css" rel="stylesheet" />
+		<style type="text/css">
+			.mui-content{
+				height: 100%;
+				/*内容太多时自动调整*/
+				overflow: auto;
+			}
+		</style>
+	</head>
+
+	<body>
+		<!-- 头部标题栏 -->
+		<header class="mui-bar mui-bar-nav title">
+			<h1 class="mui-title title-color">" 白 灵 鸟 " 聊天列表</h1>
+		</header>
+		<!-- 主体部分 -->
+		<div class="mui-content">
+			<ul class="mui-table-view" id="ul_friend_request_list" style="margin-bottom: 10px;">
+				<!-- <li class="mui-table-view-cell mui-media">
+					<a href="javascript:;">
+						<img class="mui-media-object mui-pull-left" src="">
+						<span class="mui-pull-right">
+							<button type="button" class="ignorRequest mui-btn mui-btn-grey" friendId="" style="padding: 5px 10px;margin-right: 5px;">忽略</button>
+							<button type="button" class="passRequest mui-btn mui-btn-danger" friendId="" style="padding: 5px 10px;background-color: #FF4136;">通过</button>
+						</span>
+						<div class="mui-media-body">
+							<label>养猫达人</label>
+							<p class="mui-ellipsis">请求添加你为好友</p>
+						</div>
+						
+					</a>
+				</li> -->
+			</ul>
+		</div>
+		<script src="../js/mui.js"></script>
+		<script src="../js/tool.js"></script>
+		<script type="text/javascript">
+			mui.init()
+			mui.plusReady(function () {
+				//获取全局用户对象
+				var user = tool.getUserGlobalInfo();
+				//添加自定义事件,刷新好友请求
+				window.addEventListener("refresh",function(){
+					loadingFriendRequest();
+					CHAT.init();
+				});
+				//用于拼接单个好友列表信息的字符串函数
+				function renderFriendRequest(friend){
+					var html='<li class="btnOper mui-table-view-cell mui-media">'+
+					'<a href="javascript:;">'+
+						'<img class="mui-media-object mui-pull-left" src="'+tool.imageServerUrl+friend.faceImage+'">'+
+						'<span class="mui-pull-right">'+
+							'<button type="button" class="ignorRequest mui-btn mui-btn-grey" friendId="'+friend.id+'" style="padding: 5px 10px;margin-right: 5px;">忽略</button>'+
+							'<button type="button" class="passRequest mui-btn mui-btn-danger" friendId="'+friend.id+'" style="padding: 5px 10px;background-color: #FF4136;">通过</button>'+
+						'</span>'+
+						'<div class="mui-media-body">'+
+							'<label>'+ friend.nickname +'</label>'+
+							'<p class="mui-ellipsis">请求添加你为好友</p>'+
+						'</div>'+
+						
+					'</a>'+
+				'</li>';
+				return html;
+				};
+			    //加载好友请求记录列表
+				function loadingFriendRequest(){
+					mui.ajax(tool.serverUrl + "user/bySendUserId" + "?userId="+user.id,{
+						//传入参数
+						// data:{
+						// 	id:user.id,
+						// 	username:friend.username
+						// },
+						//请求接口的方法(GET、POST、PUT……)
+						type:'get',
+						//设置参数的传入形式为json形式
+						contentType : 'application/json',
+						//定义服务器的回调数据格式为json
+						dataType : 'json',
+						//超时设置为10m
+						timeout:10000,
+						//当请求成功时会执行这个方法
+						success:function(data){
+							if(data.code==20000){
+								if(data.data!=null && data.data.length > 0){
+									//用于存储好友列表拼接字符串的变量
+									var friendRequestHTML="";
+									//遍历好友请求列表
+									for(var i = 0 ; i < data.data.length ; i++){
+										friendRequestHTML += renderFriendRequest(data.data[i]);
+									}
+									var ul_friend_request_list = document.getElementById("ul_friend_request_list");
+									//将拼接好的html代码嵌入ul对象中
+									ul_friend_request_list.innerHTML = friendRequestHTML;
+									//动态添加忽略按钮的事件处理
+									mui(".btnOper").on("tap",".ignorRequest",function(){
+										var friendId = this.getAttribute("friendId");
+										operatorFriendRequest(user.id,friendId,0);
+									})
+									//动态添加通过按钮的事件处理
+									mui(".btnOper").on("tap",".passRequest",function(){
+										var friendId = this.getAttribute("friendId");
+										operatorFriendRequest(user.id,friendId,1);
+									})
+								}else{
+									ul_friend_request_list.innerHTML = "";
+									mui.toast(data.msg);
+								}
+								
+							}else{
+								mui.toast(data.msg);
+							}
+							//对回调结果进行处理
+							
+						},
+						//当请求失败时会返回这个方法
+						error:function(XMLHttpRequest,textStatus,errorThrown){
+							//请求超时
+							if(textStatus=="timeout"){
+								mui.toast("连接超时");
+							}else if(textStatus=="error"){
+								mui.toast("连接错误")
+							}
+						},
+					});
+				};
+				
+				//将通过与忽略的按钮事件请求后端的ajax方法封装出来使代码更加简洁
+				function operatorFriendRequest(userId,friendId,operType){
+					mui.ajax(tool.serverUrl + "user/friendRequest",{
+						data:{
+							userId: userId,
+							friendId: friendId,
+							operType: operType
+						},
+						//请求接口的方法(GET、POST、PUT……)
+						type:'put',
+						//设置参数的传入形式为json形式
+						contentType : 'application/json',
+						//定义服务器的回调数据格式为json
+						dataType : 'json',
+						//超时设置为10m
+						timeout:10000,
+						success:function(data){
+							//更新通讯录
+							//重新加载用户的好友
+							if(data.code==20000){
+								//缓存用户的好友信息,之后通讯录要用
+								tool.saveFriends(data.data);
+								//加载好友消息
+								loadingFriendRequest();
+							}else{
+								mui.toast(data.msg);
+								tool.saveFriends(data.data);
+								//加载好友消息
+								loadingFriendRequest();
+							}
+						},
+						error:function(XMLHttpRequest,textStatus,errorThrown){
+							
+						},
+						
+					});
+				};
+				
+				//加载好友请求记录,在窗口刚开始的时候就执行
+				var thisWebView = plus.webview.currentWebview();
+				thisWebView.addEventListener("show",function(){
+					loadingFriendRequest();
+				});
+				CHAT.init();
+			});
+			
+			//开启webSocket
+			window.CHAT = {
+				socket:null,
+				init:function(){
+					//判断一下浏览器是否支持webSocket
+					if(window.WebSocket){
+						//如果当前webSocket的状态已经连接，无需重复初始化WebSocket
+						if(CHAT.socket != null && CHAT.socket != undefined && CHAT.socket.readyState == WebSocket.OPEN){
+							return false;
+						}else{
+							//创建webSocket 对象
+							CHAT.socket = new WebSocket(tool.nettyServerUrl);
+							CHAT.socket.onopen = CHAT.wsopen,
+							CHAT.socket.close = CHAT.wsclose,
+							CHAT.socket.onerror = CHAT.wserror,
+							CHAT.socket.onmessage = CHAT.wsmessage
+						}
+					}else{
+						console.log("您的浏览器不支持!");
+					}
+				},
+				//向服务端发送消息
+				chat:function(msg){
+					//判断当前netty的服务器是否有在运行
+					if(CHAT.socket != null && CHAT.socket != undefined && CHAT.socket.readyState == WebSocket.OPEN){
+						//将用户输入的消息进行发送
+						CHAT.socket.send(msg);
+					}else{
+						//重新的连接netty服务器并试图将消息冲洗发送
+						CHAT.init();
+						setTimeout("CHAT.reChat('"+ msg +"')","10000");
+					}
+				},
+				//自己手动创建的方法
+				wsopen:function(){
+					console.log("websocket 已连接");
+				},
+				wsmessage:function(data){
+					console.log("接收到的消息:" + data.data);
+					//调用 websocket 发送消息到 netty 后端
+					var chatWebView = plus.webview.getWebviewById("birdchat" + "a");
+					//接收服务器向我们发来的数据
+					chatWebView.evalJS("receMsg('"+ data.data +"')");
+					//将页面的滚动条重新进行resize
+					chatWebView.evalJS("resizeScreen");
+				},
+				wsclose:function(){
+					console.log("连接关闭……");
+				},
+				wserror:function(){
+					console.log("发生错误……");
+				},
+				reChat:function(msg){
+					//socket 重连机制
+					console.log("消息重新发送");
+					CHAT.socket.send(msg);
+				}
+			};
+		</script>
+	</body>
+
+</html>

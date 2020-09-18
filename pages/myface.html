@@ -1,0 +1,112 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/header.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<!-- 头部标题栏 -->
+		<header class="mui-bar mui-bar-nav title">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left" style="color: white;"></a>
+			<a id="openMenu" class="mui-icon mui-icon-right-nav mui-pull-right title-color">...</a>
+			<h1 class="mui-title">个人头像</h1>
+		</header>
+		<!-- 主体部分 -->
+		<div class="mui-content">
+			<img id="img_face" src="../images/angelina.jpg" alt="angelina">
+		</div>
+		<div id="sheet1" class="mui-popover mui-popover-bottom mui-popover-action ">
+			<!-- 可选择菜单 -->
+			<ul class="mui-table-view">
+			  <li class="mui-table-view-cell">
+				<a id="link_choosePhoto" href="#">选择照片</a>
+			  </li>
+			  <li class="mui-table-view-cell">
+				<a id="link_savePhoto" href="#">保存照片</a>
+			  </li>
+			</ul>
+			<!-- 取消菜单 -->
+			<ul class="mui-table-view">
+			  <li class="mui-table-view-cell">
+				<a href="#sheet1"><b>取消</b></a>
+			  </li>
+			</ul>
+		</div>
+		
+		
+		
+		
+		<script src="../js/mui.js"></script>
+		<script src="../js/tool.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			mui.plusReady(function () {
+			    //获取全局用户对象
+				var user = tool.getUserGlobalInfo();
+				var img_face = document.getElementById("img_face");
+				if(user!=null){
+					var faceImage = user.faceImage;
+					if(tool.isNotNull(faceImage)){
+						//设置图片服务器的地址
+						img_face.src = tool.imageServerUrl+faceImage;
+					}
+				}
+				//设置图片的宽度和高度
+				var imgWeight = document.body.clientWidth;
+				img_face.width = imgWeight;
+				img_face.height = imgWeight;
+				
+				//个人头像菜单按钮设置
+				document.getElementById("openMenu").addEventListener("tap",function(){
+					mui("#sheet1").popover("toggle");
+				})
+				
+				//个人头像选择点击事件
+				document.getElementById("link_choosePhoto").addEventListener("tap",function(){
+					mui.openWindow("../plugin/v3.1.6/myface-uploader.html","myface-uploader.html");
+					//关闭菜单
+					mui("#sheet1").popover("toggle");
+				})
+				
+				//个人头像保存
+				document.getElementById("link_savePhoto").addEventListener("tap",function(){
+					//显示等待中的动画
+					plus.nativeUI.showWaiting("下载中……");
+					//获取用户头像地址
+					var faceImage = user.faceImage;
+					
+					//创建下载的对象
+					var dtast = plus.downloader.createDownload(
+						//从哪里下载
+						tool.imageServerUrl + faceImage,
+						{},
+						function(downloadFile, status){
+							
+							plus.nativeUI.closeWaiting();
+							
+							if(status==200){
+								//先将其保存在临时文件里
+								var tempFile = downloadFile.filename;
+								
+								//通过相册api保存照片到本地相册
+								plus.gallery.save(tempFile,function(){
+									mui.toast("保存照片成功");
+								})
+							} else {
+								mui.toast("下载错误……");
+							}
+						}
+					);
+					//启动下载任务
+					dtast.start();
+				})
+			})
+		</script>
+	</body>
+
+</html>

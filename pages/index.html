@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="../css/mui.css" rel="stylesheet" />
+		<link href="../css/header.css" rel="stylesheet" />
+		<link href="../iconfont/iconfont.css" rel="stylesheet" />
+	</head>
+
+	<body>
+		<!-- 标题栏 -->
+		<header class="mui-bar mui-bar-nav title">
+			<h1 class="mui-title title-color" id="bird_title">"百 灵 鸟" 聊 天</h1>
+		</header>
+		<!-- 主题部分 -->
+		<div class="mui-content">
+			
+		</div>
+		<!-- 底部选项卡 -->
+		<nav class="mui-bar mui-bar-tab">
+			<a class="mui-tab-item mui-active" tabindex="0">
+				<span class="mui-icon iconfont icon-niao"></span>
+				<span class="mui-tab-label">百灵鸟</span>
+			</a>
+			<a class="mui-tab-item" tabindex="1">
+				<span class="mui-icon iconfont icon-tongxunlu"></span>
+				<span class="mui-tab-label">通讯录</span>
+			</a>
+			<a class="mui-tab-item" tabindex="2">
+				<span class="mui-icon iconfont icon-faxian"></span>
+				<span class="mui-tab-label">发现</span>
+			</a>
+			<a class="mui-tab-item" tabindex="3">
+				<span class="mui-icon iconfont icon-wo"></span>
+				<span class="mui-tab-label">我的</span>
+			</a>
+		</nav>
+		<script src="../js/mui.js"></script>
+		<script type="text/javascript">
+			mui.init();
+			//定义用于存储选项卡页面的数组
+			var subPages = [
+				{
+					pageId:"birdlist",
+					pageUrl:"birdlist.html"
+				},
+				{
+					pageId:"birdcontent",
+					pageUrl:"birdcontent.html"
+				},
+				{
+					pageId:"birdfind",
+					pageUrl:"birdfind.html"
+				},
+				{
+					pageId:"birdmy",
+					pageUrl:"birdmy.html"
+				}
+			]
+			//设置页面打开的样式
+			var pageStyle = {
+				top:"0px",
+				bottom:"50px"
+			}
+			
+			
+			//在手机端才会实现
+			mui.plusReady(function () {
+			// mui.ready(function () {
+			    //改变系统状态栏的颜色与字体颜色
+				if(window.plus){
+					
+					//对网络连接进行事件监听
+					netChangeSwitch();
+					
+					plus.navigator.setStatusBarBackground("#FF4136");
+					plus.navigator.setStatusBarStyle("light");
+					
+					//选项卡代码
+					//获取当前的webview对象
+					var indexWebview = plus.webview.currentWebview();
+					//将数据中的页面循环向当前主页追加子页面的4个webview
+					for(var i = 0; i < subPages.length; i++){
+						//将每次循环产生的页面信息进行创建为view窗口对象
+						var web = plus.webview.create(subPages[i].pageUrl,subPages[i].pageId,pageStyle);
+						//隐藏
+						web.hide();
+						//追加子窗口对象至主窗口
+						indexWebview.append(web);
+						
+					}
+					//设置默认的窗口页面
+					plus.webview.show(subPages[0].pageId);
+					//添加延迟加载
+					setTimeout("initData()",1000);
+				}
+			});
+			
+			//预加载
+			function initData(){
+				var bird_list = plus.webview.getWebviewById("birdlist");
+				mui.fire(bird_list,"refresh");
+				
+				var bird_my = plus.webview.getWebviewById("birdmy");
+				mui.fire(bird_my,"refresh");
+			}
+			
+			//监听网络状态的函数
+			function netChangeSwitch(){
+				document.addEventListener("netchange",function(){
+					//获取网络的状态
+					var netWorkState = plus.networkinfo.getCurrentType();
+					//判断网络是否连接 0:网络连接未知  1:网络未连接
+					if(netWorkState!=0 && netWorkState!=1){
+						//网络通常
+						var bird_title = document.getElementById("bird_title");
+						bird_title.innerHTML = " \" 百 灵 鸟 \" 聊 天";
+					}else{
+						//网络异常
+						var bird_title = document.getElementById("bird_title");
+						bird_title.innerHTML = " \"百 灵 鸟\" 聊 天(未连接)";
+					}
+				})
+			}
+			
+			
+			
+			//批量绑定tab事件
+			mui(".mui-bar-tab").on("tap","a",function(){
+				//获取你点击元素的tabindex的属性
+				var tabindex = this.getAttribute("tabindex");
+				//显示点击的tab选项卡所对应的页面
+				plus.webview.show(subPages[tabindex].pageId,"fade-in",200)
+				//隐藏不需要的页面
+				for(var i = 0; i < subPages.length;i++){
+					if(i!=tabindex){
+						if(window.plus){
+							plus.webview.hide(subPages[i].pageId,"fade-out",200)
+						}
+					}
+				}
+			});
+		</script>
+	</body>
+
+</html>
